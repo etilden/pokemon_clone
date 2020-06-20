@@ -25,6 +25,10 @@ class MonpokeTeam {
   }
 
   addMonpoke(monpokeId, healthPoints, attackPoints) {
+    if (typeof(healthPoints) !== 'number' || typeof(attackPoints) !== 'number') {
+      console.log('Health and attack points must be numbers!')
+      return
+    }
     let newMonpoke = new Monpoke(monpokeId, healthPoints, attackPoints);
     this.monpoke.push(newMonpoke);
   }
@@ -44,12 +48,12 @@ class MonpokeGame {
 
   addTeam(teamId, monpokeId, healthPoints, attackPoints) {
     if (!this.team1.teamId) {
-      this.team1 = new MonpokeTeam(teamId);
-      this.team1.addMonpoke(monpokeId, healthPoints, attackPoints);
+      this.team1 = new MonpokeTeam(teamId + '');
+      this.team1.addMonpoke(monpokeId + '', healthPoints, attackPoints);
       return true;
     } else if (!this.team2.teamId) {
-      this.team2 = new MonpokeTeam(teamId);
-      this.team2.addMonpoke(monpokeId, healthPoints, attackPoints);
+      this.team2 = new MonpokeTeam(teamId + '');
+      this.team2.addMonpoke(monpokeId + '', healthPoints, attackPoints);
       return true;
     } else {
       console.log('You have already populated the game!');
@@ -115,6 +119,9 @@ let create = (teamId, monpokeId, healthPoints, attackPoints) => {
   if (!teamId || !monpokeId || !healthPoints || !attackPoints) {
     console.log('Please define all of the parameters for the create action!')
     return
+  }
+  if (teamId === game.team1.teamId || teamId === game.team2.teamId) {
+    console.log('Team name must be unique!')
   }
   let team = game.addTeam(teamId, monpokeId, healthPoints, attackPoints);
   if (team) {
