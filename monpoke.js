@@ -27,14 +27,14 @@ class MonpokeTeam {
   addMonpoke(monpokeId, healthPoints, attackPoints) {
     if (typeof(healthPoints) !== 'number' || typeof(attackPoints) !== 'number') {
       console.log('Health and attack points must be numbers!')
-      return
+    } else {
+      let newMonpoke = new Monpoke(monpokeId, healthPoints, attackPoints);
+      this.monpoke.push(newMonpoke);
     }
-    let newMonpoke = new Monpoke(monpokeId, healthPoints, attackPoints);
-    this.monpoke.push(newMonpoke);
   }
 
   chooseMonpoke(monpokeId) {
-    this.chosenMonpoke = this.monpoke.filter(monpoke => monpoke.monpokeId = monpokeId);
+    this.chosenMonpoke = this.monpoke.filter(monpoke => monpoke.monpokeId === monpokeId);
   }
 }
 
@@ -47,18 +47,26 @@ class MonpokeGame {
   }
 
   addTeam(teamId, monpokeId, healthPoints, attackPoints) {
+    if (!teamId || !monpokeId || !healthPoints || !attackPoints) {
+      console.log('Please define all of the parameters for the create action!');
+      return false;
+    }
     if (!this.team1.teamId) {
       this.team1 = new MonpokeTeam(teamId + '');
       this.team1.addMonpoke(monpokeId + '', healthPoints, attackPoints);
-      return true;
     } else if (!this.team2.teamId) {
+      if (teamId === this.team1.teamId) {
+        console.log('Team id must be unique!');
+        return false;
+      }
       this.team2 = new MonpokeTeam(teamId + '');
       this.team2.addMonpoke(monpokeId + '', healthPoints, attackPoints);
-      return true;
     } else {
       console.log('You have already populated the game!');
       return false;
     }
+    console.log(`${monpokeId} has been assigned to team ${teamId}!`);
+    return true;
   }
 
   completeTurn() {
@@ -66,7 +74,7 @@ class MonpokeGame {
   }
 
   teamsInitialized() {
-    if (this.team1.monpoke.length && this.team2.monpoke.length) {
+    if (this.team1.monpoke && this.team2.monpoke) {
       return true;
     }
     console.log('Please add two teams before initiating gameplay!');
@@ -87,7 +95,7 @@ class MonpokeGame {
     let currTeam = this.currTeam()[0]
     let currMonpoke = currTeam.monpoke.filter(monpoke => monpoke.monpokeId === monpokeId)[0] || {}; 
     if (!currMonpoke.monpokeId) {
-      console.log(`${currTeam.teamId} does not have the Monpoke ${currMonpoke.monopokeId}`);
+      console.log(`${currTeam.teamId} does not have the Monpoke ${monpokeId}`);
     }
     return currMonpoke; 
   }
@@ -99,7 +107,7 @@ class MonpokeGame {
       console.log('Please choose a Monopoke before using the attack command!');
       selected = false;
     } else if (currTeam.chosenMonpoke.monpokeId !== monopokeId) {
-      console.log(`You can only attack with your chosen Monopoke! Please either attack with your current Monopoke or use this turn to switch your chosen Monopoke to ${monopoke.id}`);
+      console.log(`You can only attack with your chosen Monopoke! Please either attack with your current Monopoke or use this turn to switch your chosen Monopoke to ${monopokeId}`);
       selected = false;
     }
     return selected;
@@ -108,48 +116,33 @@ class MonpokeGame {
   checkTeamStatus(loser, winner) {
     if (!loser.monpoke.length) {
       console.log(`Team ${winner.teamId} wins!`)
-      console.log('Play again!')
+      console.log('Play again :)')
       game = new MonpokeGame()
     }
   }
-}
 
-//game command helper functions
-let create = (teamId, monpokeId, healthPoints, attackPoints) => {
-  if (!teamId || !monpokeId || !healthPoints || !attackPoints) {
-    console.log('Please define all of the parameters for the create action!')
-    return
-  }
-  if (teamId === game.team1.teamId || teamId === game.team2.teamId) {
-    console.log('Team name must be unique!')
-  }
-  let team = game.addTeam(teamId, monpokeId, healthPoints, attackPoints);
-  if (team) {
-    console.log(`${monpokeId} has been assigned to team ${teamId}!`);
-  } 
-}
-
-let choose = (monpokeId) => {
-  let team = game.currTeam()[0];
-  team.chosenMonpoke = game.checkMonpokeInSet(monpokeId);
-  if (!team.chosenMonpoke.monpokeId) {
-    return false;
-  }
-  console.log(`${monpokeId} enters the battle!`);
-  game.completeTurn();
-  return true;
-}
-
-let attack = (monopokeId) => {
-  let [attacker, defender] = game.currTeam();
-  if (game.checkMonopokeSelected(monopokeId)) {
-    defender.chosenMonpoke.defend(attacker.chosenMonpoke);
-    if (defender.chosenMonpoke.healthPoints <= 0) {
-      console.log(`${defender.chosenMonpoke.monpokeId} has been defeated!`);
-      defender.monpoke = defender.monpoke.filter(monpoke => monpoke.monpokeId !== defender.chosenMonpoke.monpokeId);
-      game.checkTeamStatus(defender, attacker); 
+  choose(monpokeId) {
+    let team = this.currTeam()[0]; 
+    team.chosenMonpoke = this.checkMonpokeInSet(monpokeId);
+    if (!team.chosenMonpoke.monpokeId) {
+      return false;
     }
-    game.completeTurn();
+    console.log(`${monpokeId} enters the battle!`);
+    this.completeTurn();
+    return true;
+  }
+  
+  attack(monopokeId) {
+    let [attacker, defender] = this.currTeam();
+    if (this.checkMonopokeSelected(monopokeId)) {
+      defender.chosenMonpoke.defend(attacker.chosenMonpoke);
+      if (defender.chosenMonpoke.healthPoints <= 0) {
+        console.log(`${defender.chosenMonpoke.monpokeId} has been defeated!`);
+        defender.monpoke = defender.monpoke.filter(monpoke => monpoke.monpokeId !== defender.chosenMonpoke.monpokeId);
+        this.checkTeamStatus(defender, attacker); 
+      }
+      this.completeTurn();
+    }
   }
 }
 
@@ -160,12 +153,12 @@ let game = new MonpokeGame();
 rl.on('line', (input) => {
   let command = input.split(' ');
   if(command[0] === 'CREATE') {
-    create(command[1], command[2], command[3], command[4]);
+    game.addTeam(command[1], command[2], Number(command[3]), Number(command[4]));
   } else if (game.teamsInitialized()) {
     if (command[1] === 'ICHOOSEYOU') {
-      choose(command[0]);
+      game.choose(command[0]);
     } else if (command[1] === 'ATTACK') {
-      attack(command[0]);
+      game.attack(command[0]);
     } else {
       console.log('Invalid input!');
     }
