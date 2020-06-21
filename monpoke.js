@@ -2,7 +2,7 @@ const readline = require('readline');
 
 const rl = readline.createInterface({input: process.stdin, output: process.stdout})
 
-//individual monopoke class
+//individual monpoke class
 class Monpoke {
   constructor(monpokeId, healthPoints, attackPoints) {
     this.monpokeId = monpokeId,
@@ -43,7 +43,8 @@ class MonpokeGame {
   constructor() {
     this.team1 = {},
     this.team2 = {},
-    this.team1Turn = true
+    this.team1Turn = true,
+    this.gameOver = false
   }
 
   addTeam(teamId, monpokeId, healthPoints, attackPoints) {
@@ -100,14 +101,14 @@ class MonpokeGame {
     return currMonpoke; 
   }
 
-  checkMonopokeSelected(monopokeId) {
-    let currTeam = game.currTeam()[0]; 
+  checkMonpokeSelected(monpokeId) {
+    let currTeam = this.currTeam()[0];
     let selected = true;
     if (!currTeam.chosenMonpoke.monpokeId) {
-      console.log('Please choose a Monopoke before using the attack command!');
+      console.log('Please choose a Monpoke before using the attack command!');
       selected = false;
-    } else if (currTeam.chosenMonpoke.monpokeId !== monopokeId) {
-      console.log(`You can only attack with your chosen Monopoke! Please either attack with your current Monopoke or use this turn to switch your chosen Monopoke to ${monopokeId}`);
+    } else if (currTeam.chosenMonpoke.monpokeId !== monpokeId) {
+      console.log(`You can only attack with your chosen Monpoke! Please either attack with your current Monpoke or use this turn to switch your chosen Monpoke to ${monpokeId}`);
       selected = false;
     }
     return selected;
@@ -115,9 +116,10 @@ class MonpokeGame {
 
   checkTeamStatus(loser, winner) {
     if (!loser.monpoke.length) {
-      console.log(`Team ${winner.teamId} wins!`)
-      console.log('Play again :)')
-      game = new MonpokeGame()
+      this.gameOver = true;
+      console.log(`Team ${winner.teamId} wins!`);
+      console.log('Play again :)');
+      game = new MonpokeGame();
     }
   }
 
@@ -132,13 +134,14 @@ class MonpokeGame {
     return true;
   }
   
-  attack(monopokeId) {
+  attack(monpokeId) {
     let [attacker, defender] = this.currTeam();
-    if (this.checkMonopokeSelected(monopokeId)) {
+    if (this.checkMonpokeSelected(monpokeId)) {
       defender.chosenMonpoke.defend(attacker.chosenMonpoke);
       if (defender.chosenMonpoke.healthPoints <= 0) {
         console.log(`${defender.chosenMonpoke.monpokeId} has been defeated!`);
         defender.monpoke = defender.monpoke.filter(monpoke => monpoke.monpokeId !== defender.chosenMonpoke.monpokeId);
+        defender.chosenMonpoke = {};
         this.checkTeamStatus(defender, attacker); 
       }
       this.completeTurn();
